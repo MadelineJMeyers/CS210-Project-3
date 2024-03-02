@@ -15,11 +15,8 @@ public:
 
 	void addItem();
 	void removeItem();
-	int getItemQuantity();
+	int getItemQuantity() const;
 	std::string getItemName() const;
-	std::string findItem(std::string& itemName, std::set<GrocerTracker>& grocerItems);
-	void outputItemFrequency(std::string fileName, std::set<GrocerTracker>& grocerItems);
-	std::set<GrocerTracker>inputItemFrequency(std::string fileName, std::set<GrocerTracker>& grocerItems);
 	bool operator<(const GrocerTracker& other) const;
 
 private:

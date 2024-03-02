@@ -7,6 +7,98 @@
 #include "GrocerTracker.h"
 
 
+//Handles taking input from a file and returns a set of objects from the input.
+//@param fileName - The name of the input file.
+//@param grocerItems - An existing set to hold information.
+//@returns - A sorted set of objects.
+std::set<GrocerTracker> inputItemFrequency(std::string fileName, std::set<GrocerTracker>& inputItems) {
+    std::ifstream inStream;
+    std::string name;
+    inStream.open(fileName);
+
+    if (!inStream.is_open()) {
+
+        std::cerr << "Error opening file\n";
+        return inputItems;
+
+    }
+
+
+    while (inStream >> name) {
+
+        GrocerTracker* grocerPtr = new GrocerTracker(name);
+        auto existingItem = inputItems.find(*grocerPtr);
+
+        if (existingItem != inputItems.end()) {
+
+            GrocerTracker* newPtr = new GrocerTracker(existingItem->getItemName(), existingItem->getItemQuantity());
+            inputItems.erase(*existingItem);
+
+            newPtr->addItem();
+            inputItems.insert(*newPtr);
+            delete grocerPtr;
+            delete newPtr;
+
+        }
+        else {
+
+            inputItems.insert(*grocerPtr);
+            delete grocerPtr;
+        }
+    }
+
+
+
+    inStream.close();
+
+    return inputItems;
+}
+
+
+//Outputs the formatted item frequency to a separate file.
+//@param fileName - The name of the file for the information.
+//@param grocerItems - The set of item frequencies to be output.
+void outputItemFrequency(std::string fileName, std::set<GrocerTracker>& outputItems) {
+    std::ofstream outStream;
+    outStream.open(fileName);
+
+    if (!outStream.is_open()) {
+
+        std::cerr << "Error opening file: " << fileName << std::endl;
+
+    }
+
+    for (GrocerTracker item : outputItems) {
+
+        outStream << item.getItemName() << " " << item.getItemQuantity() << std::endl;
+
+    }
+
+    outStream.close();
+}
+
+//Searches a set of objects for a specific item and returns the name and value as a string.
+//@param itemName - The name of the object being searched for.
+//@param grocerItems - An initialized set of objects to search through.
+//@returns - A string containing the name and value of the object if one was found or a message letting the user know the object does not exist in the file.
+std::string findItem(std::string& itemName, std::set<GrocerTracker>& searchedItems) {
+    std::string found;
+    auto searchedArea = searchedItems.find(itemName);
+
+    if (searchedArea != searchedItems.end()) {
+
+        found = (*searchedArea).getItemName() + " " + std::to_string((*searchedArea).getItemQuantity());
+
+    }
+    else {
+
+        found = "Not in file";
+
+    }
+
+    return found;
+}
+
 //Appends a string of characters n times. Used to display histogram for menu options.
 //@param n - The number of times a character should be appended to the output string.
 //@param c - The character to append into the output string.
@@ -95,11 +187,11 @@ int main()
     bool active = true;
     std::cin.exceptions(std::ios::failbit);
     
-    GrocerTracker grocerItem(itemName);
+    //GrocerTracker grocerItem(itemName);
     std::set<GrocerTracker> itemFrequency;
 
-    itemFrequency = grocerItem.inputItemFrequency("inventory.txt", itemFrequency);
-    grocerItem.outputItemFrequency("frequency.dat", itemFrequency);
+    itemFrequency = inputItemFrequency("inventory.txt", itemFrequency);
+    outputItemFrequency("frequency.dat", itemFrequency);
 
 
 
@@ -131,17 +223,17 @@ int main()
             switch (userChoice) {
             case 1: //Output specified item numerically.
                 itemFrequency.clear();
-                itemFrequency = grocerItem.inputItemFrequency("inventory.txt", itemFrequency); //Set reinitializes prior to output to account for potential changes in the data.
+                itemFrequency = inputItemFrequency("inventory.txt", itemFrequency); //Set reinitializes prior to output to account for potential changes in the data.
                 std::cout << "Enter the name of the item you want to search for:\n";
                 std::cin >> userItemName;
-                std::cout << grocerItem.findItem(userItemName, itemFrequency) << std::endl;
+                std::cout << findItem(userItemName, itemFrequency) << std::endl;
                 system("pause");
                 system("cls");
                 break;
 
             case 2: //Output information numerically
                 itemFrequency.clear();
-                itemFrequency = grocerItem.inputItemFrequency("inventory.txt", itemFrequency);
+                itemFrequency = inputItemFrequency("inventory.txt", itemFrequency);
                 displayItems(itemFrequency, 1);
                 system("pause");
                 system("cls");
@@ -149,14 +241,14 @@ int main()
 
             case 3: //Output information as histogram
                 itemFrequency.clear();
-                itemFrequency = grocerItem.inputItemFrequency("inventory.txt", itemFrequency);
+                itemFrequency = inputItemFrequency("inventory.txt", itemFrequency);
                 displayItems(itemFrequency, 2);
                 system("pause");
                 system("cls");
                 break;
 
             case 4: //Exit program
-                grocerItem.outputItemFrequency("frequency.dat", itemFrequency); //Outputs before closing to account for any changes that may have occured during the use of the program.
+                outputItemFrequency("frequency.dat", itemFrequency); //Outputs before closing to account for any changes that may have occured during the use of the program.
                 std::cout << "Thank you for using the Corner Grocer's inventory system, goodbye!" << std::endl;
                 active = false;
                 break;
